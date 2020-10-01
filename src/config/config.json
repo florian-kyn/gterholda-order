@@ -1,0 +1,13 @@
+{
+  "client": {
+    "prefix": "§",
+    "token": "NzUyMTIzNjU3MTI3NDYwOTM0.X1TDvQ.kYC_L5Ok0VOHBmFY2WP8aH_vjkA"
+  },
+  "database": {
+    "database": "discordbot",
+    "username": "discordbot",
+    "password": "Mb&9g71y",
+    "server": "45.82.120.87",
+    "port": "3306"
+  }
+}

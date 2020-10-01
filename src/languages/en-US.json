@@ -1,0 +1,119 @@
+{
+  "questions": {
+    "create": {
+      "embeds": {
+        "fieldNames": [
+          "Server Domain Name:",
+          "Server Description:",
+          "Server GameMode:",
+          "Server Version:"
+        ],
+        "title": [
+          "Hey, You chose to add a server!",
+          "Say yes to save this server!"
+        ],
+        "description": [
+          "What's The **Domain Name** of the server ?",
+          "Make a **short description** of the server.",
+          "What's the GameMode of the server ?",
+          "What's the version of the server?"
+        ]
+      },
+      "messageError": [
+        "The server list has failed. It has not been created.",
+        "You've been banned, you can't create a post anymore."
+      ],
+      "messageSuccess": [
+        "The server list has been successfully created!"
+      ]
+    },
+    "delete": {
+      "messageSuccess": [
+        "The server has been successfully removed from the list."
+      ],
+      "messageError": [
+        "You must be administrator to delete a server from the list.",
+        "the server you asked to delete is not in the list."
+      ]
+    },
+    "help": {
+      "embed": {
+        "values": [
+          "- Usable by everyone to add a server to the list.",
+          "- Usable only by administrator to delete a server from the list.",
+          "- If you're list with commands, use it.",
+          "- Usable to show all server in our database.",
+          "- Usable to show a certain amount of server in our database.",
+          "- usable to show servers in function of their Gamemode or version.",
+          "- With this command, you can set the channel to send the server list each x time."
+        ]
+      },
+      "messageError": []
+    },
+    "ban": {
+      "messageSuccess": [
+        "The user USER has been successfully banned from using the bot.",
+        "You have been banned from using for: `REASON`"
+      ],
+      "messageError": [
+        "You must be administrator to delete a server from the list.",
+        "You must specify a user to ban.",
+        "The user id is not valid.",
+        "You must specify a reason to ban someone.",
+        "The reason must not contain this caractere",
+        "The user is already banned."
+      ]
+    },
+    "unban": {
+      "messageSuccess": [
+        "USER has been successfully unbanned.",
+        "You have been successfully unbanned by AUTHOR."
+      ],
+      "messageError": [
+        "You must be administrator to delete a server from the list.",
+        "You must specify a user to ban.",
+        "The user id is not valid.",
+        "The user is not banned."
+      ]
+    },
+    "channel": {
+      "messageSuccess": [
+        "The channel has been successfully set.",
+        "The channel has been successfully removed."
+      ],
+      "messageError": [
+        "You must be administrator to set a channel.",
+        "You must specify an action.",
+        "The channel is already set.",
+        "This channel is not set."
+      ]
+    },
+    "show": {
+      "messageError": [
+        "You are banned, You can't use the bot anymore.",
+        "You must specify a number between 0 & NUMBER.",
+        "You must specify a Gamemode.",
+        "You must specify a version.",
+        "The Gamemode you specified has not been found.",
+        "The version you specified has not been found."
+      ]
+    }
+  },
+  "info": {
+    "embed": {
+      "name": [
+        "Status:",
+        "Library:",
+        "Member:",
+        "Servers:",
+        "Roles:",
+        "Developer:"
+      ],
+      "value": [
+        "Members",
+        "Servers",
+        "Roles"
+      ]
+    }
+  }
+}
