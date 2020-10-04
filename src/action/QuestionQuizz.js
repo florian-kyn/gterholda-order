@@ -11,13 +11,12 @@ class QuestionQuizz { // class for the commands
         this.client = client; // get the client instance from index.js
         this.db = new Database(config); // get the database class instance
         this.commands = "post"; // set command to call
-        this.channel = "743803409521573928" // channel id where list will be sent
+        this.channel = "759456204870123580" // channel id where list will be sent
     }
     redirect() { // method to redirect in function of the commands
         if(this.message.author.id !== this.client.user.id) { // check if the message author is not the bot
-            setInterval(() => {
-                this.notificationInterval();
-            }, 60000)
+            //this.notificationInterval();
+            //this.leaderboardNews();
             if(this.args[0].toLowerCase() === this.prefix + this.commands) { // check if the message is starting by <PREFIX> <COMMAND>
                 if(this.message.channel.type === "dm" && this.args[0] === this.prefix + this.commands) return;
                 if(typeof this.args[1] === "undefined") return; // return if array empty
@@ -100,6 +99,7 @@ class QuestionQuizz { // class for the commands
                                             })
                                             const ans = answer.first();
                                             infos.push(ans.content)
+                                            infos.push("0")
                                             if(typeof ans !== "undefined") {
                                                 this.message.author.send(this.embeds(5, infos)).then().catch(console.error);
                                                 this.message.author.send(this.language.create.embeds.title[1]).then(async message => {
@@ -111,22 +111,24 @@ class QuestionQuizz { // class for the commands
                                                     })
                                                     const ans = answer.first();
                                                     infos.push(ans.content)
-                                                    this.db.connection().query(`CREATE TABLE IF NOT EXISTS serverList (name VARCHAR(255), description VARCHAR(255), gameMode VARCHAR(255), version VARCHAR(255))`, (err) => {
+                                                    this.db.connection().query(`CREATE TABLE IF NOT EXISTS serverList (name VARCHAR(255), description VARCHAR(255), gameMode VARCHAR(255), version VARCHAR(255), rank INT, userId VARCHAR(30))`, (err) => {
                                                         if(err) throw err;
                                                     });
                                                     if(ans.content.toLowerCase() === "yes") {
-                                                        this.db.connection().query(`INSERT INTO serverList (name, description, gameMode, version) VALUES ("${infos[0]}", "${infos[1]}", "${infos[2]}", "${infos[3]}")`, (err) => {
+                                                        this.db.connection().query(`INSERT INTO serverList (name, description, gameMode, version, rank, userId) VALUES ("${infos[0]}", "${infos[1]}", "${infos[2]}", "${infos[3]}", 0, "${this.message.author.id}")`, (err) => {
                                                             if(err) throw err;
                                                             this.message.author.send(this.language.create.messageSuccess[0]).then().catch(console.error)
-                                                            this.db.connection().query(`SELECT * FROM channels`, (err, rows) => {
-                                                                if(err) throw err;
-                                                                if(rows.length >= 1) {
-                                                                    for(let i = 0; rows.length > i; i++) {
-                                                                        let channel = this.message.guild.channels.cache.find(channel => channel.id === rows[i].channelId)
-                                                                        channel.send(this.embeds(5, infos)).then().catch(console.error);
-                                                                    }
-                                                                }
-                                                            });
+                                                            this.message.channel.send(this.embeds(5, infos)).then(message => {
+                                                                message.react("😭").then().catch();
+                                                                message.react("⭐").then().catch();
+                                                                this.db.connection().query(`CREATE TABLE IF NOT EXISTS rankVoters (userId VARCHAR(30), serverVoted VARCHAR(255))`, (err) => {
+                                                                    if(err) throw err;
+                                                                })
+                                                                this.db.connection().query(`INSERT INTO rankReactMsgId (messageId) VALUES ("${message.id}")`, (err) => {
+                                                                    if (err) throw err;
+                                                                });
+                                                            }).catch(console.error);
+
                                                             let time = `${new Date(Date.now()).getHours()}:${new Date(Date.now()).getMinutes()}:${new Date(Date.now()).getSeconds()}`; // init time variable
                                                             console.log(`[${time}] '${this.message.author.tag}' just added a server in the list.`);
                                                         })
@@ -264,14 +266,17 @@ class QuestionQuizz { // class for the commands
         }
     }
     show() {
+        this.db.connection().query(`CREATE TABLE IF NOT EXISTS rankReactMsgId (messageId VARCHAR(30))`, (err) => {
+            if(err) throw err;
+        });
         this.db.connection().query(`SELECT * FROM listBan WHERE userId = ${this.message.author.id}`, (err, rows) => {
             if (err) throw err;
             if (rows.length >= 1) {
                 return this.message.channel.send(this.language.show.messageError[0]).then(message => message.delete({timeout: 10000})).catch(console.error);
             } else {
-                if(typeof this.args[2] !== "undefined") {
-                    if(this.args[2].toLowerCase() === "gamemode") {
-                        if(typeof this.args[3] !== "undefined") {
+                if (typeof this.args[2] !== "undefined") {
+                    if (this.args[2].toLowerCase() === "gamemode") {
+                        if (typeof this.args[3] !== "undefined") {
                             let gamemode = "";
                             for (let i = 3; this.args.length > i; i++) {
                                 gamemode += this.args[i];
@@ -279,11 +284,10 @@ class QuestionQuizz { // class for the commands
                             }
                             gamemode.substring(0, gamemode.length - 1); //return of the reason
                             this.db.connection().query(`SELECT * FROM serverList WHERE gameMode = "${gamemode}"`, (err, rows) => {
-                                if(err) throw err;
-                                if(rows.length >= 1) {
-                                    for(let i = 0; rows.length > i; i++) {
-                                        setTimeout(() => {}, 1000);
-                                        let info = [rows[i].name, rows[i].description, rows[i].gameMode, rows[i].version]
+                                if (err) throw err;
+                                if (rows.length >= 1) {
+                                    for (let i = 0; rows.length > i; i++) {
+                                        let info = [rows[i].name, rows[i].description, rows[i].gameMode, rows[i].version, rows[i].rank]
                                         this.message.channel.send(this.embeds(5, info)).then().catch(console.error);
                                     }
                                 } else {
@@ -295,14 +299,13 @@ class QuestionQuizz { // class for the commands
                             this.message.delete().then(console.error);
                             this.message.channel.send(this.language.show.messageError[2]).then().catch(console.error)
                         }
-                    } else if(this.args[2].toLowerCase() === "version") {
-                        if(typeof this.args[3] !== "undefined") {
+                    } else if (this.args[2].toLowerCase() === "version") {
+                        if (typeof this.args[3] !== "undefined") {
                             this.db.connection().query(`SELECT * FROM serverList WHERE version = '${this.args[3]}'`, (err, rows) => {
-                                if(err) throw err;
-                                if(rows.length >= 1) {
-                                    setTimeout(() => {}, 1000);
-                                    for(let i = 0; rows.length > i; i++) {
-                                        let info = [rows[i].name, rows[i].description, rows[i].gameMode, rows[i].version]
+                                if (err) throw err;
+                                if (rows.length >= 1) {
+                                    for (let i = 0; rows.length > i; i++) {
+                                        let info = [rows[i].name, rows[i].description, rows[i].gameMode, rows[i].version, rows[i].rank]
                                         this.message.channel.send(this.embeds(5, info)).then().catch(console.error);
                                     }
                                 } else {
@@ -314,31 +317,138 @@ class QuestionQuizz { // class for the commands
                             this.message.delete().then(console.error);
                             this.message.channel.send(this.language.show.messageError[3]).then().catch(console.error)
                         }
-                    } else  {
-                        this.db.connection().query(`SELECT * FROM serverList`, (err, rows) => {
-                            if(err) throw err;
-                            if(this.args[2] <= rows.length && this.args[2] > 0) {
-                                for(let i = 0; this.args[2] > i; i++) {
-                                    let info = [rows[i].name, rows[i].description, rows[i].gameMode, rows[i].version]
-                                    this.message.channel.send(this.embeds(5, info)).then().catch(console.error);
+                    } else if (this.args[2].toLowerCase() === "name") {
+                        if (typeof this.args[3] !== "undefined") {
+                            this.db.connection().query(`SELECT * FROM serverList WHERE name = '${this.args[3]}'`, (err, rows) => {
+                                if (err) throw err;
+                                if (rows.length >= 1) {
+                                    for (let i = 0; rows.length > i; i++) {
+                                        let info = [rows[i].name, rows[i].description, rows[i].gameMode, rows[i].version, rows[i].rank]
+                                        this.message.channel.send(this.embeds(5, info)).then(message => {
+                                            message.react("😭").then().catch();
+                                            message.react("⭐").then().catch();
+                                            this.db.connection().query(`CREATE TABLE IF NOT EXISTS rankVoters (userId VARCHAR(30), serverVoted VARCHAR(255), voteState VARCHAR(30))`, (err) => {
+                                                if(err) throw err;
+                                            })
+                                            this.db.connection().query(`INSERT INTO rankReactMsgId (messageId) VALUES ("${message.id}")`, (err) => {
+                                                if (err) throw err;
+                                            });
+                                        }).catch(console.error);
+                                    }
+                                } else {
+                                    this.message.delete().then().catch(console.error);
+                                    this.message.channel.send(this.language.show.messageError[5]).then(message => message.delete({timeout: 10000})).catch(console.error);
                                 }
-                            } else {
-                                this.message.delete().then().catch(console.error);
-                                this.message.channel.send(this.language.show.messageError[1].replace("NUMBER", rows.length)).then(message => message.delete({timeout: 10000})).catch(console.error);
-                            }
-                        });
+                            });
+                        } else {
+                            this.db.connection().query(`SELECT * FROM serverList`, (err, rows) => {
+                                if (err) throw err;
+                                if (this.args[2] <= rows.length && this.args[2] > 0) {
+                                    for (let i = 0; this.args[2] > i; i++) {
+                                        let info = [rows[i].name, rows[i].description, rows[i].gameMode, rows[i].version]
+                                        this.message.channel.send(this.embeds(5, info)).then().catch(console.error);
+                                    }
+                                } else {
+                                    this.message.delete().then().catch(console.error);
+                                    this.message.channel.send(this.language.show.messageError[1].replace("NUMBER", rows.length)).then(message => message.delete({timeout: 10000})).catch(console.error);
+                                }
+                            });
+                        }
+                    } else if(this.args[2].toLowerCase() === "top") {
+                        if(typeof this.args[3] !== "undefined") {
+                            if(this.args[3].toLowerCase() === "set") {
+                                this.db.connection().query(`CREATE TABLE IF NOT EXISTS rankNews (channelId VARCHAR(30))`, (err) => {if(err) throw err;});
+                                this.db.connection().query(`SELECT * FROM rankNews WHERE channelId = "${this.message.channel.id}"`, (err, rows) => {
+                                    if(err) throw rows;
+                                    if(rows.length < 1) {
+                                        this.db.connection().query(`INSERT INTO rankNews (channelId) VALUES ("${this.message.channel.id}")`, (err) => {
+                                            if(err) throw err;
 
+                                            this.db.connection().query(`SELECT * FROM serverList`, (err, rows) => {
+                                                if (err) throw err;
+                                                let servers = {};
+                                                for (let i = 0; rows.length > i; i++) {
+                                                    servers[rows[i].name] = rows[i].rank;
+                                                }
+
+                                                let servers_buffer = Object.keys(servers).map((buff) => {
+                                                    return [buff, servers[buff]];
+                                                });
+
+                                                servers_buffer.sort((key_one, key_two) => {
+                                                    return key_two[1] - key_one[1];
+                                                });
+
+                                                this.message.channel.send(this.embeds(8, servers_buffer)).then().catch(console.error);
+                                            });
+
+                                            this.message.channel.send(`The channel has been set.`).then().catch(console.error);
+                                        });
+                                    } else {
+                                        this.message.channel.send(`The channel has been already set.`).then(message => message.delete({timeout: 10000})).catch(console.error);
+                                    }
+                                });
+                            }
+                        } else {
+                            this.db.connection().query(`SELECT * FROM serverList`, (err, rows) => {
+                                if (err) throw err;
+                                let servers = {};
+                                for (let i = 0; rows.length > i; i++) {
+                                    servers[rows[i].name] = rows[i].rank;
+                                }
+
+                                let servers_buffer = Object.keys(servers).map((buff) => {
+                                    return [buff, servers[buff]];
+                                });
+
+                                servers_buffer.sort((key_one, key_two) => {
+                                    return key_two[1] - key_one[1];
+                                });
+
+                                this.message.channel.send(this.embeds(8, servers_buffer)).then().catch(console.error);
+                            });
+                        }
                     }
                 } else {
                     this.db.connection().query(`SELECT * FROM serverList`, (err, rows) => {
-                        if(err) throw err;
-                        for(let i = 0; rows.length > i; i++) {
+                        if (err) throw err;
+                        for (let i = 0; rows.length > i; i++) {
                             let info = [rows[i].name, rows[i].description, rows[i].gameMode, rows[i].version]
                             this.message.channel.send(this.embeds(5, info)).then().catch(console.error);
                         }
                     });
                 }
             }
+        });
+    }
+    leaderboardNews() {
+        this.db.connection().query(`CREATE TABLE IF NOT EXISTS rankNews (channelId VARCHAR(30))`, (err) => {if(err) throw err;});
+        this.db.connection().query(`SELECT * FROM serverList`, (err, rows) => {
+            if(err) throw err;
+            let serverList = rows;
+            this.db.connection().query(`SELECT * FROM rankNews`, (err, rows) => {
+                if(err) throw err;
+                if(rows.length >= 1) {
+                    for(let i = 0; rows.length > i; i++) {
+                        setInterval(() => {
+                            let servers = {};
+                            for (let i = 0; serverList.length > i; i++) {
+                                servers[serverList[i].name] = serverList[i].rank;
+                            }
+
+                            let servers_buffer = Object.keys(servers).map((buff) => {
+                                return [buff, servers[buff]];
+                            });
+
+                            servers_buffer.sort((key_one, key_two) => {
+                                return key_two[1] - key_one[1];
+                            });
+
+                            this.message.channel.send(this.embeds(8, servers_buffer)).then().catch(console.error);
+                        }, 86400000);
+                    }
+                }
+            });
         });
     }
     notificationInterval() {
@@ -534,6 +644,7 @@ class QuestionQuizz { // class for the commands
                         {name: '\u200B', value: '\u200B', inline: true},
                         {name: this.language.create.embeds.fieldNames[2], value: "`" + info[2] + "`", inline: true},
                         {name: this.language.create.embeds.fieldNames[3], value: "`" + info[3] + "`", inline: true},
+                        {name: this.language.create.embeds.fieldNames[4], value: "`" + info[4] + " Vote" + "`", inline: true},
                         {name: this.language.create.embeds.fieldNames[1], value: "`" + info[1] + "`", inline: false},
                     )
                     .setColor("GREEN")
@@ -554,6 +665,22 @@ class QuestionQuizz { // class for the commands
                         {name: '\u200B', value: '\u200B', inline: true},
                         {name: "`" + `${this.prefix + this.commands} show <version/gamemode> <version/gamemode> :` + "`", value: this.language.help.embed.values[5], inline: true},
                         {name: "`" + `${this.prefix + this.commands} news <set/remove> <time/nothing> :` + "`", value: this.language.help.embed.values[5], inline: true},
+                    )
+                    .setColor("GREEN")
+                    .setFooter(`@florian_kyn`, "https://i.imgur.com/2XRrIuv.png")
+                    .setTimestamp();
+            case 8:
+                let stuff = [];
+                for(let i = 0; info.length > i; i++) {
+                    stuff.push( "`" + `${info[i][0]}: ${info[i][1]} Vote` + "`")
+                }
+
+                return new discord.MessageEmbed()
+                    .setAuthor(this.message.guild.name, this.client.user.avatarURL())
+                    .setThumbnail(this.message.guild.member(this.message.author.id).user.avatarURL())
+                    .setTitle("Here is the leaderboard !")
+                    .addField(`Leaderboard on ${info.length} servers:`,
+                        stuff
                     )
                     .setColor("GREEN")
                     .setFooter(`@florian_kyn`, "https://i.imgur.com/2XRrIuv.png")

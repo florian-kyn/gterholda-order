@@ -6,7 +6,8 @@
           "Server Domain Name:",
           "Server Description:",
           "Server GameMode:",
-          "Server Version:"
+          "Server Version:",
+          "Server Ranking:"
         ],
         "title": [
           "Hey, You chose to add a server!",
@@ -88,6 +89,7 @@
         "This channel is not set."
       ]
     },
+
     "show": {
       "messageError": [
         "You are banned, You can't use the bot anymore.",
@@ -115,5 +117,12 @@
         "Roles"
       ]
     }
+  },
+  "rank": {
+    "messages": [
+      "You have already voted to this server, you can't vote again!",
+      "You have voted for the server SERVER! Thanks for your feedback!",
+      "You have negatively voted for the server SERVER! What's your feedback? (answer what's the negative point of this server.)"
+    ]
   }
 }
